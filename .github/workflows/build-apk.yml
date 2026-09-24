@@ -3,6 +3,7 @@ name: Construir S M APK
 on:
   workflow_dispatch:
   push:
+    branches: ["principal"]
 
 jobs:
   build:
@@ -16,19 +17,19 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Instalar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: "8.9"
 
-      - name: Extraer proyecto
-            
-        run:   |  
-      ZIP="SM_Android_v0.7_fotos_texto_pantalla.zip"
-      test -f "$ZIP"
-    unzip -q "$ZIP" -d sm_project
+      - name: Extraer proyecto v0.7
+        run: |
+          ZIP="SM_Android_v0.7_fotos_texto_pantalla.zip"
+          test -f "$ZIP"
+          unzip -q "$ZIP" -d sm_project
+
       - name: Compilar APK
         working-directory: sm_project
         run: gradle assembleDebug
@@ -36,5 +37,5 @@ jobs:
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: SM-APK
+          name: SM-APK-v0.7
           path: sm_project/app/build/outputs/apk/debug/app-debug.apk
