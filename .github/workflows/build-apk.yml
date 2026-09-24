@@ -24,8 +24,9 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extraer proyecto
-        run: |
-          unzip -q SM_Android_v0.4_con_GitHub_Actions-3.zip -d sm_project
+        run: ZIP=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
+               unzip -q "$ZIP" -d sm_project
+      
 
       - name: Compilar APK
         working-directory: sm_project
