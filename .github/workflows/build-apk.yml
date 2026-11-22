@@ -28,25 +28,37 @@ jobs:
       - name: Extraer proyecto v0.7
         run: |
           ZIP="SM_Android_v0.7_fotos_texto_pantalla.zip"
-          test -f "$ZIP"
-          unzip -q "$ZIP" -d sm_project
+          if [ ! -f "$ZIP" ]; then
+            echo "No se encontro el ZIP"
+            exit 1
+          fi
+          mkdir -p sm_project
+          unzip -oq "$ZIP" -d sm_project
 
-      - name: Encontrar proyecto Gradle
+      - name: Encontrar configuracion Gradle
         run: |
+          echo "Revisando archivos del proyecto..."
+          find sm_project -maxdepth 6 -type f -print
+
           SETTINGS_FILE=$(find sm_project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit)
 
           if [ -z "$SETTINGS_FILE" ]; then
-            echo "No se encontro settings.gradle"
-            find sm_project -maxdepth 5 -type f
+            echo "ERROR: No se encontro settings.gradle"
             exit 1
           fi
 
           PROJECT_DIR=$(dirname "$SETTINGS_FILE")
+
+          if [ ! -f "$PROJECT_DIR/build.gradle" ] && [ ! -f "$PROJECT_DIR/build.gradle.kts" ]; then
+            echo "ERROR: No se encontro build.gradle"
+            exit 1
+          fi
+
+          echo "Proyecto encontrado: $PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Proyecto encontrado en: $PROJECT_DIR"
 
       - name: Compilar APK
-        run: gradle -p sm_project assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
