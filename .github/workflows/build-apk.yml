@@ -1,3 +1,4 @@
+
 name: Construir S M APK
 
 on:
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar código
+      - name: Descargar codigo
         uses: actions/checkout@v4
 
       - name: Configurar Java
@@ -30,12 +31,27 @@ jobs:
           test -f "$ZIP"
           unzip -q "$ZIP" -d sm_project
 
+      - name: Encontrar proyecto Gradle
+        run: |
+          SETTINGS_FILE=$(find sm_project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit)
+
+          if [ -z "$SETTINGS_FILE" ]; then
+            echo "No se encontro settings.gradle"
+            find sm_project -maxdepth 5 -type f
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$SETTINGS_FILE")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Proyecto encontrado en: $PROJECT_DIR"
+
       - name: Compilar APK
-        working-directory: sm_project
-        run: gradle assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: SM-APK-v0.7
-          path: sm_project/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
